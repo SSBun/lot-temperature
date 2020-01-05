@@ -1,20 +1,15 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
-#include <WiFiClientSecure.h>
 #include "DHT.h"
 
-WiFiClientSecure client;
+WiFiClient client;
 
 #define SSID "No,thankyou-2"
 #define PASSWORD "beijing_newhome_11.3"
 
-const String LC_ID = "7zw6tQBddCfPvbaVtBGxUy0G-gzGzoHsz";
-const String LC_KEY = "voPGHhBz7MozpUm0Fq2AMFmv";
-const String URL = "/1.1/classes/TH";
-const char fingerprint[] PROGMEM = "D5 79 2E 15 A9 60 9F F1 15 4B 55 96 65 E6 3F 72 44 59 BB 94";
+const String URL = "/";
 
-#define SERVER "7zw6tqbd.lc-cn-n1-shared.com"
-// #define SERVER "api.github.com"
+#define SERVER "39.100.226.244"
 
 const int SENSOR_PIN = D1;
 #define DHT_TYPE DHT11
@@ -47,7 +42,6 @@ void setup()
   echo("Connecting to ");
   delay(10);
   WiFi.begin(SSID, PASSWORD);
-  client.setFingerprint(fingerprint);
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(500);
@@ -62,12 +56,6 @@ void setup()
 
 void loop()
 {
-  // delay(2000);
-  // digitalWrite(D1, HIGH);
-  // delay(2000);
-  // digitalWrite(D1, LOW);
-  // ESP.deepSleep(10e6);
-  // delay(5000);
   delay(5000);
   Serial.println("Send request ...");
   uploadData(22, 22, 22);
@@ -97,37 +85,21 @@ void getSensorData(float &temperature, float &humidity, float &heatIndex)
 
 void uploadData(float temperature, float humidity, float heatIndex)
 {
-  if (client.connect(SERVER, 443))
+  if (client.connect(SERVER, 8080))
   {
-    // String data = "{\"weather\":16,\"humidity\":72}";
-    String data = "weather=";
-    data += String(temperature);
-    data += "&humidity=";
-    data += String(humidity);
-    // data += "&heatIndex=";
-    // data += String(heatIndex);
-    String postRequest = (String)("POST ") + URL + " HTTP/1.1\r\n" +
+    String data = "{\"weather\":16,\"humidity\":72}";
+    // String data = "weather=";
+    // data += String(temperature);
+    // data += "&humidity=";
+    // data += String(humidity);
+
+    String postRequest = "GET " + URL + " HTTP/1.1\r\n" +
                          "Content-Type: application/json;charset=utf-8\r\n" +
                          "Host: " + SERVER + "\r\n" +
-                         "User-Agent: BuildFailureDetectorESP8266\r\n" +
-                         "X-LC-Id:" + LC_ID + "\r\n" +
-                         "X-LC-Key" + LC_KEY + "\r\n" +
                          "Connection: close\r\n\r\n" +
                          data + "\r\n";
     Serial.println(postRequest);
     client.print(postRequest);
-    // client.print("POST /1.1/classes/TH HTTP/1.1\n");
-    // client.print("Host: 7zw6tqbd.lc-cn-n1-shared.com\n");
-    // client.print("Connection: keep-alive\n");
-    // client.print("X-LC-Id: " + LC_ID + "\n");
-    // client.print("X-LC-Key: " + LC_KEY + "\n");
-    // client.print("Content-Type: application/json\n");
-    // client.print("Content-Length: ");
-    // client.print(Data.length());
-    // client.print("\n\n");
-    // client.print(Data);
-    // Serial.println("");
-    // Serial.println("uploaded to Thingspeak server....");
 
     String response = client.readString();
     echo("The response is: ");
